@@ -39,12 +39,12 @@ class Sensor(GenericSensor):
     """
 
     SENSOR_SCHEMA: CerberusSchemaType = {
-        "type": dict(
-            type="string",
-            required=True,
-            empty=False,
-            allowed=["value", "voltage"],
-        ),
+        "type":
+            dict(type="string",
+                 required=False,
+                 empty=False,
+                 allowed=["value", "voltage"],
+                 default="value"),
     }
 
     def setup_module(self) -> None:
