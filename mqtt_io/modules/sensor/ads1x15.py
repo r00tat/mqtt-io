@@ -11,7 +11,7 @@ SENSOR_ADS1015 = "ADS1015"
 SENSOR_ADS1115 = "ADS1115"
 SENSOR_TYPES = [SENSOR_ADS1015, SENSOR_ADS1115]
 
-REQUIREMENTS = ("adafruit-ads1x15")
+REQUIREMENTS = ("adafruit-circuitpython-ads1x15")
 CONFIG_SCHEMA: CerberusSchemaType = {
     "chip_addr":
         dict(type="integer", required=False, empty=False, default=0x48),
