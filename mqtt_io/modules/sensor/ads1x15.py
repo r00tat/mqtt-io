@@ -58,7 +58,7 @@ class Sensor(GenericSensor):
         self.i2c = busio.I2C(board.SCL, board.SDA)
 
         # Create the ADC object using the I2C bus
-        if self.config["i2c_bus_num"] == SENSOR_ADS1015:
+        if self.config["type"] == SENSOR_ADS1015:
             from adafruit_ads1x15.ads1015 import ADS1015
             ADS = ADS1015
         else:
