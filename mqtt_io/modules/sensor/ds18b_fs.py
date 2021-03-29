@@ -34,12 +34,13 @@ class Sensor(GenericSensor):
         self.file_path = f"/sys/bus/w1/devices/{self.config['file']}/temperature"
         if not os.path.isfile(self.file_path):
             raise FileNotFoundError(
-                f"unable to locate 1wire temperate file under {self.file_path}")
+                (f"unable to locate 1wire temperature file under {self.file_path}. "
+                 f"Make sure the w1_therm and w1_gpio kernel modules are loaded"))
 
     def get_value(self, sens_conf: ConfigType) -> SensorValueType:
         """
         Get the temperature value from the sensor
         """
-        with os.open(self.file_path, 'r') as raw_file:
-            raw_value = os.read(raw_file)
+        with open(self.file_path, 'r') as raw_file:
+            raw_value = raw_file.read()
         return float(raw_value) / 1000
