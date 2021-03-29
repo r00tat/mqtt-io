@@ -31,10 +31,10 @@ class Sensor(GenericSensor):
         # sensor_types: Dict[str, SensorType] = {s.name: s for s in list(SensorType)}
         # self.sensor_type = sensor_types[self.config["type"].upper()]
         # self.sensor = W1ThermSensor(self.sensor_type, self.config["address"].lower())
-        self.file_path = f"/sys/bus/w1/devices/${self.config['file']}/temperature"
+        self.file_path = f"/sys/bus/w1/devices/{self.config['file']}/temperature"
         if not os.path.isfile(self.file_path):
             raise FileNotFoundError(
-                f"unable to locate 1wire temperate file under ${self.file_path}")
+                f"unable to locate 1wire temperate file under {self.file_path}")
 
     def get_value(self, sens_conf: ConfigType) -> SensorValueType:
         """
