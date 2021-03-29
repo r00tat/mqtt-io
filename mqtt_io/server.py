@@ -111,8 +111,6 @@ def _init_module(
     module_schema = get_main_schema_section(f"{module_type}_modules")
     # Add the module's config schema to the base schema
     module_schema.update(getattr(module, "CONFIG_SCHEMA", {}))
-    module_schema['install_requirements'] = dict(
-        type="boolean", required=False, default=True)
     module_config = validate_and_normalise_config(module_config, module_schema)
     if module_config.get('install_requirements', True):
         install_missing_module_requirements(module)
