@@ -465,7 +465,7 @@ digital_inputs:
       gpio_modules:
         - name: rpi
           module: raspberrypi
-      
+
       digital_inputs:
         - name: gpio0
           module: rpi
@@ -555,8 +555,7 @@ digital_inputs:
           description: |
             Enable the pull-up resistor for this input so that the logic level is pulled
             "high" by default.
-          extra_info:
-            Not all GPIO modules support pull-up resistors.
+          extra_info: Not all GPIO modules support pull-up resistors.
         type: boolean
         required: no
         default: no
@@ -565,8 +564,7 @@ digital_inputs:
           description: |
             Enable the pull-down resistor for this input so that the logic level is pulled
             "low" by default.
-          extra_info:
-            Not all GPIO modules support pull-down resistors.
+          extra_info: Not all GPIO modules support pull-down resistors.
         type: boolean
         required: no
         default: no
@@ -684,7 +682,7 @@ digital_outputs:
       gpio_modules:
         - name: rpi
           module: raspberrypi
-      
+
       digital_outputs:
         - name: gpio0
           module: rpi
@@ -854,7 +852,7 @@ sensor_inputs:
           module: dht22
           type: AM2302
           pin: 4
-      
+
       sensor_inputs:
         - name: workshop_temp
           module: dht
@@ -1014,4 +1012,3 @@ reporting:
           want to provide additional context to help the developers diagnose the issue.
       type: integer
       required: no
-
