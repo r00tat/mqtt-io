@@ -1,3 +1,15 @@
+v2.1.4 - 2021-03-26
+===================
+- Add version to 'model' field of HA Discovery config payload. #196 @pbill2003
+
+v2.1.3 - 2021-03-26
+===================
+- Add missing `spi_device` config schema entry for MCP3008 sensor module. #194
+
+v2.1.2 - 2021-03-24
+===================
+- Remove config validation that checks usage of the same numbered pin used twice. #191
+
 v2.1.1 - 2021-03-16
 ===================
 - Fix bodged BH1750 sensor value reading code. #189

@@ -13,6 +13,7 @@ REQUIREMENTS = ("adafruit-mcp3008",)
 
 CONFIG_SCHEMA = {
     "spi_port": dict(type="integer", required=False, empty=False, default=0),
+    "spi_device": dict(type="integer", required=False, empty=False, default=0),
     "chip_addr": dict(type="integer", required=False, empty=False, default=0),
 }
 
@@ -26,11 +27,10 @@ class Sensor(GenericSensor):
 
     SENSOR_SCHEMA = {
         "channel": dict(
-            type="string",
-            required=False,
-            empty=False,
-            default="CH0",
-            allowed=[f"CH{i}" for i in range(8)] + [f"DF{i}" for i in range(8)],
+            type="integer",
+            required=True,
+            min=0,
+            max=7,
         )
     }
 
@@ -45,7 +45,6 @@ class Sensor(GenericSensor):
         self.mcp = Adafruit_MCP3008.MCP3008(
             spi=SPI.SpiDev(self.config["spi_port"], self.config["spi_device"])
         )
-        self.channels = {f"CH{i}": i for i in range(8)}
 
     def get_value(self, sens_conf: ConfigType) -> SensorValueType:
         """
