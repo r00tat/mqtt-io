@@ -299,12 +299,6 @@ gpio_modules:
         type: boolean
         required: no
         default: yes
-      install_requirements:
-        meta:
-          description: Whether to run `pip install` for all the requirements in the module.
-        type: boolean
-        required: no
-        default: yes
 
 sensor_modules:
   meta:
@@ -352,12 +346,6 @@ sensor_modules:
       cleanup:
         meta:
           description: Whether to run the module's `cleanup()` method on exit.
-        type: boolean
-        required: no
-        default: yes
-      install_requirements:
-        meta:
-          description: Whether to run `pip install` for all the requirements in the module.
         type: boolean
         required: no
         default: yes
@@ -442,12 +430,6 @@ stream_modules:
           description:
             Whether to subscribe to MQTT messages on a topic and write messages received
             on it to the stream.
-        type: boolean
-        required: no
-        default: yes
-      install_requirements:
-        meta:
-          description: Whether to run `pip install` for all the requirements in the module.
         type: boolean
         required: no
         default: yes
@@ -1012,3 +994,20 @@ reporting:
           want to provide additional context to help the developers diagnose the issue.
       type: integer
       required: no
+
+options:
+  meta:
+    description: Miscellaneous options regarding the runtime behaviour of MQTT IO.
+    yaml_example: |
+      options:
+        install_requirements: no
+  type: dict
+  required: no
+  default: {}
+  schema:
+    install_requirements:
+      meta:
+        description: Whether to install missing module packages on startup.
+      type: boolean
+      required: no
+      default: yes

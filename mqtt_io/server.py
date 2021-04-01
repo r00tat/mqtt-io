@@ -19,6 +19,7 @@ from hashlib import sha1
 from importlib import import_module
 from typing import Any, Dict, List, Optional, Tuple, Type, Union, overload
 
+import backoff  # type: ignore
 from typing_extensions import Literal
 
 from .config import (
@@ -67,7 +68,7 @@ from .mqtt import (
     MQTTTLSOptions,
     MQTTWill,
 )
-from .types import ConfigType, PinType
+from .types import ConfigType, PinType, SensorValueType
 from .utils import PriorityCoro, create_unawaited_task_threadsafe
 
 _LOG = logging.getLogger(__name__)
@@ -75,27 +76,33 @@ _LOG = logging.getLogger(__name__)
 
 @overload
 def _init_module(
-    module_config: Dict[str, Dict[str, Any]], module_type: Literal["gpio"]
+    module_config: Dict[str, Dict[str, Any]],
+    module_type: Literal["gpio"],
+    install_requirements: bool,
 ) -> GenericGPIO:
     ...  # pragma: no cover
 
 
 @overload
 def _init_module(
-    module_config: Dict[str, Dict[str, Any]], module_type: Literal["sensor"]
+    module_config: Dict[str, Dict[str, Any]],
+    module_type: Literal["sensor"],
+    install_requirements: bool,
 ) -> GenericSensor:
     ...  # pragma: no cover
 
 
 @overload
 def _init_module(
-    module_config: Dict[str, Dict[str, Any]], module_type: Literal["stream"]
+    module_config: Dict[str, Dict[str, Any]],
+    module_type: Literal["stream"],
+    install_requirements: bool,
 ) -> GenericStream:
     ...  # pragma: no cover
 
 
 def _init_module(
-    module_config: Dict[str, Dict[str, Any]], module_type: str
+    module_config: Dict[str, Dict[str, Any]], module_type: str, install_requirements: bool
 ) -> Union[GenericGPIO, GenericSensor, GenericStream]:
     """
     Initialise a GPIO module by:
@@ -112,7 +119,7 @@ def _init_module(
     # Add the module's config schema to the base schema
     module_schema.update(getattr(module, "CONFIG_SCHEMA", {}))
     module_config = validate_and_normalise_config(module_config, module_schema)
-    if module_config.get('install_requirements', True):
+    if install_requirements:
         install_missing_module_requirements(module)
     module_class: Type[Union[GenericGPIO, GenericSensor, GenericStream]] = getattr(
         module, MODULE_CLASS_NAMES[module_type]
@@ -233,7 +240,9 @@ class MqttIo:  # pylint: disable=too-many-instance-attributes
         self.gpio_configs = {x["name"]: x for x in self.config["gpio_modules"]}
         self.gpio_modules = {}
         for gpio_config in self.config["gpio_modules"]:
-            self.gpio_modules[gpio_config["name"]] = _init_module(gpio_config, "gpio")
+            self.gpio_modules[gpio_config["name"]] = _init_module(
+                gpio_config, "gpio", self.config["options"]["install_requirements"]
+            )
 
     def _init_sensor_modules(self) -> None:
         """
@@ -242,7 +251,9 @@ class MqttIo:  # pylint: disable=too-many-instance-attributes
         self.sensor_configs = {x["name"]: x for x in self.config["sensor_modules"]}
         self.sensor_modules = {}
         for sens_config in self.config["sensor_modules"]:
-            self.sensor_modules[sens_config["name"]] = _init_module(sens_config, "sensor")
+            self.sensor_modules[sens_config["name"]] = _init_module(
+                sens_config, "sensor", self.config["options"]["install_requirements"]
+            )
 
     def _init_stream_modules(self) -> None:
         """
@@ -279,7 +290,9 @@ class MqttIo:  # pylint: disable=too-many-instance-attributes
         self.stream_modules = {}
         sub_topics: List[str] = []
         for stream_conf in self.config["stream_modules"]:
-            stream_module = _init_module(stream_conf, "stream")
+            stream_module = _init_module(
+                stream_conf, "stream", self.config["options"]["install_requirements"]
+            )
             self.stream_modules[stream_conf["name"]] = stream_module
 
             self.transient_tasks.append(
@@ -527,8 +540,27 @@ class MqttIo:  # pylint: disable=too-many-instance-attributes
                 sensor_module: GenericSensor = sensor_module,
                 sens_conf: ConfigType = sens_conf,
             ) -> None:
+                @backoff.on_exception(  # type: ignore
+                    backoff.expo, Exception, max_time=sens_conf["interval"]
+                )
+                @backoff.on_predicate(  # type: ignore
+                    backoff.expo, lambda x: x is None, max_time=sens_conf["interval"]
+                )
+                async def get_sensor_value(
+                    sensor_module: GenericSensor = sensor_module,
+                    sens_conf: ConfigType = sens_conf,
+                ) -> SensorValueType:
+                    return await sensor_module.async_get_value(sens_conf)
+
                 while True:
-                    value = await sensor_module.async_get_value(sens_conf)
+                    value = None
+                    try:
+                        value = await get_sensor_value()
+                    except Exception:  # pylint: disable=broad-except
+                        _LOG.exception(
+                            "Exception when retrieving value from sensor %r:",
+                            sens_conf["name"],
+                        )
                     if value is not None:
                         value = round(value, sens_conf["digits"])
                         _LOG.info(
