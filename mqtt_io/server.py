@@ -14,13 +14,13 @@ import re
 import signal as signals
 import threading
 from asyncio.queues import QueueEmpty
-from asyncio_mqtt.error import MqttCodeError
 from functools import partial
 from hashlib import sha1
 from importlib import import_module
 from typing import Any, Dict, List, Optional, Tuple, Type, Union, overload
 
 import backoff  # type: ignore
+from asyncio_mqtt.error import MqttCodeError
 from typing_extensions import Literal
 
 from .config import (
