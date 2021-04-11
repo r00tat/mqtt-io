@@ -14,6 +14,7 @@ import re
 import signal as signals
 import threading
 from asyncio.queues import QueueEmpty
+from asyncio_mqtt.error import MqttCodeError
 from functools import partial
 from hashlib import sha1
 from importlib import import_module
@@ -1028,6 +1029,10 @@ class MqttIo:  # pylint: disable=too-many-instance-attributes
             )
             try:
                 await entry.coro
+            except MqttCodeError:
+                _LOG.exception("MQTT Exception while handling MQTT task:")
+                _LOG.warning("Exiting as there is proably a connection error")
+                self.shutdown()
             except Exception:  # pylint: disable=broad-except
                 _LOG.exception("Exception while handling MQTT task:")
             self.mqtt_task_queue.task_done()
